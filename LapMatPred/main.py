@@ -6,8 +6,7 @@ from LapMatPred.graphUtilities import *
 import numpy as np
 
 import tensorflow as tf
-import keras as K
-
+from keras import layers, models
 
 #########################################################################################
 # MAIN CODE
@@ -42,11 +41,11 @@ if name == "__main__":
     print("Data generated!")
     print("Building model...")
 
-    model = K.models.Sequential([
-        K.layers.Flatten(input_shape=(nodes_number, nodes_number)),
-        K.layers.Dense(nodes_number**2, activation='relu'),
-        K.layers.Dense(nodes_number**2, activation='relu'),
-        K.layers.Reshape((nodes_number, nodes_number))
+    model = models.Sequential([
+        layers.Flatten(input_shape=(nodes_number, nodes_number)),
+        layers.Dense(nodes_number**2, activation='relu'),
+        layers.Dense(nodes_number**2, activation='relu'),
+        layers.Reshape((nodes_number, nodes_number))
     ])
 
     print("Model built!")
