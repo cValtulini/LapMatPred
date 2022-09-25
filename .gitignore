@@ -1,0 +1,10 @@
+__pycache__
+
+# IDE Config Files
+.idea/
+
+# Python Notebooks
+*.ipynb
+
+# Apple folder config
+.DS_Store
