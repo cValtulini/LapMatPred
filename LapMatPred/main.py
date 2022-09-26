@@ -11,14 +11,14 @@ from keras import layers, models
 #########################################################################################
 # MAIN CODE
 #########################################################################################
-if name == "__main__":
-    np.random.seed(42)
+if __name__ == '__main__':
+    rng = np.random.RandomState(42)
 
-    train_set_size = 8000
-    test_set_size = 2000
+    train_set_size = 800
+    test_set_size = 200
     set_size = train_set_size + test_set_size
 
-    nodes_number = 60  # number of nodes in the graph
+    nodes_number = 20  # number of nodes in the graph
     connection_prob = 0.3  # probability of connection between two nodes
 
     print("Generating data...")
