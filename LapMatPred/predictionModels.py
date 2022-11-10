@@ -3,6 +3,8 @@
 #########################################################################################
 import tensorflow as tf
 from tensorflow.keras import layers, models, losses
+
+
 # import tensorflow.keras.backend as K
 
 
@@ -17,9 +19,11 @@ class LaplacianPredictionModel(tf.keras.Model):
     and methods
     """
 
+
     def __init__(self, nodes_number):
         super().__init__()
         self.nodes_number = nodes_number
+
 
     def loadSavedModel(self, path):
         pass
@@ -32,39 +36,40 @@ class LaplacianPredictionModelFC(LaplacianPredictionModel):
     information about previous representations and to reduce backpropagation problems.
     """
 
+
     def __init__(self, nodes_number, depth=1, activation='relu'):
         super().__init__(nodes_number)
 
         self.flatten = layers.Reshape(
-            (nodes_number**2,), input_shape=(nodes_number, nodes_number)
+            (nodes_number ** 2,), input_shape=(nodes_number, nodes_number)
             )
         self.ffn = [
-            layers.Dense(nodes_number**2, activation=activation) for _ in range(depth)
-            ]
+                layers.Dense(nodes_number ** 2, activation=activation) for _ in
+                range(depth)
+                ]
         self.conv = [
-            layers.Conv2D(
-                1, 1,
-                activation=activation, input_shape=(nodes_number, nodes_number, 2)
-                ) for _ in range(depth)
-            ]
+                layers.Conv2D(
+                    1, 1,
+                    activation=activation, input_shape=(nodes_number, nodes_number, 2)
+                    ) for _ in range(depth)
+                ]
         self.output_layer = layers.Dense(
-            nodes_number*(nodes_number-1)//2, activation=activation
+            nodes_number * (nodes_number - 1) // 2, activation=activation
             )
         self.drop = layers.Dropout(0.2)
         self.reshape = layers.Reshape(
-            (nodes_number, nodes_number, 1), input_shape=(nodes_number**2,)
+            (nodes_number, nodes_number, 1), input_shape=(nodes_number ** 2,)
             )
         self.concat = layers.Concatenate(axis=-1)
 
-    def call(self, inputs):
 
+    def call(self, inputs):
         # Flattens the input to be fed to the FFN
         x = self.flatten(inputs)
 
         for ffn_layer, conv_layer in zip(self.ffn, self.conv):
             # Creates new copy of current input to be given to 1x1 Convolutional Layer
             previous = self.reshape(x)
-
 
             x = self.reshape(self.drop(ffn_layer(x)))
             x = self.flatten(conv_layer(self.concat([x, previous])))
@@ -83,17 +88,18 @@ class LaplacianPredictionModelQuantizedClassification(LaplacianPredictionModel):
         self.classes = classes
 
         self.flatten = layers.Reshape(
-            (nodes_number**2,), input_shape=(nodes_number, nodes_number)
+            (nodes_number ** 2,), input_shape=(nodes_number, nodes_number)
             )
         self.ffn = [
-            layers.Dense(nodes_number, activation='relu') for _ in range(self.classes*2)
-            ]
-        self.reshape = layers.Reshape(
-            (nodes_number, nodes_number, 1), input_shape=(nodes_number**2,)
-            )
+                layers.Dense(
+                    nodes_number * (nodes_number - 1) // 2, activation='relu'
+                    )
+                for _ in range(self.classes * 2)
+                ]
+        self.reshape = layers.Reshape((nodes_number*(nodes_number-1)//2, 1))
         self.concat = layers.Concatenate(axis=-1)
 
-        self.output_layer = layers.conv2D(self.classes, 1, activation='softmax')
+        self.output_layer = layers.Conv1D(self.classes, 1)
 
 
     def call(self, inputs):
@@ -105,9 +111,6 @@ class LaplacianPredictionModelQuantizedClassification(LaplacianPredictionModel):
 
         return self.output_layer(self.concat(x))
 
-
-
-        return x
 
 # LAYERS
 #########################################################################################
