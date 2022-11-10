@@ -51,7 +51,9 @@ class LaplacianPredictionModelFC(LaplacianPredictionModel):
             nodes_number*(nodes_number-1)//2, activation=activation
             )
         self.drop = layers.Dropout(0.2)
-        self.reshape = layers.Reshape((nodes_number, nodes_number, 1), input_shape=(nodes_number**2,))
+        self.reshape = layers.Reshape(
+            (nodes_number, nodes_number, 1), input_shape=(nodes_number**2,)
+            )
         self.concat = layers.Concatenate(axis=-1)
 
     def call(self, inputs):
@@ -76,12 +78,36 @@ class LaplacianPredictionModelQuantizedClassification(LaplacianPredictionModel):
     # problem. Where the classes are given by the quantization levels an element of the
     # matrix is assigned to.
 
-    def __init__(self, nodes_number):
+    def __init__(self, nodes_number, classes):
         super().__init__(nodes_number)
+        self.classes = classes
+
+        self.flatten = layers.Reshape(
+            (nodes_number**2,), input_shape=(nodes_number, nodes_number)
+            )
+        self.ffn = [
+            layers.Dense(nodes_number, activation='relu') for _ in range(self.classes*2)
+            ]
+        self.reshape = layers.Reshape(
+            (nodes_number, nodes_number, 1), input_shape=(nodes_number**2,)
+            )
+        self.concat = layers.Concatenate(axis=-1)
+
+        self.output_layer = layers.conv2D(self.classes, 1, activation='softmax')
 
 
     def call(self, inputs):
-        return inputs
+        inputs = self.flatten(inputs)
+
+        x = [ffn_layer(inputs) for ffn_layer in self.ffn]
+
+        x = [self.reshape(element) for element in x]
+
+        return self.output_layer(self.concat(x))
+
+
+
+        return x
 
 # LAYERS
 #########################################################################################
