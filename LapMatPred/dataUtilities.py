@@ -6,6 +6,7 @@ from LapMatPred.graphUtilities import *
 import numpy as np
 import tensorflow as tf
 
+from sklearn.utils import class_weight
 
 #########################################################################################
 # FUNCTIONS
@@ -131,7 +132,7 @@ def splitDataset(x, y, train_size, val_size=None):
 def quantizeForClassification(x, number_of_classes=4, low=0, high=1, avoid_zero=True):
     """
     Quantizes the input data into a specified number of classes. If avoid_zero is True,
-    moves all non zero elements in the input data to the next class.
+    moves all nonzero elements in the input data to the next class.
 
     Parameters
     ----------
@@ -144,7 +145,7 @@ def quantizeForClassification(x, number_of_classes=4, low=0, high=1, avoid_zero=
     high: float, default 1
         The upper bound of the quantization
     avoid_zero: bool, default True
-        If True, moves all non zero elements in the input data to the next class
+        If True, moves all nonzero elements in the input data to the next class
 
     Returns
     -------
@@ -162,3 +163,44 @@ def quantizeForClassification(x, number_of_classes=4, low=0, high=1, avoid_zero=
         x_classes = np.where((x_classes == 0) == (x == 0), x_classes, x_classes + 1)
 
     return x_classes, levels[x_classes]
+
+
+def createSampleWeightMask(y, classification=True):
+    """
+    Creates a mask for the sample weights. If classification is True, the mask is giveb
+    by class weights for each sample, otherwise the function is intended to be used to
+    discriminate between zero and nonzero elements in the input data for sparse arrays,
+    computing weights for the two cases as if they were classes.
+
+    Parameters
+    ----------
+    y: numpy.ndarray or tensorflow.Tensor
+        The input data used to extract classes, compute weights and create the mask
+    classification: bool, default True
+        If True, classes are extracted from values of y, otherwise the class of an element
+        is represented by it being zero or nonzero
+
+    Returns
+    -------
+    numpy.ndarray: y.shape
+        The mask of sample weights
+    dict: {int: float}
+        A dictionary containing couples of {class, class's weight}}
+
+    """
+
+    if classification:
+        classes = np.unique(y)
+        # Function wants a flattened array as y
+        weights = class_weight.compute_class_weight(
+            'balanced', classes=classes, y=y.numpy().flatten()
+            )
+    else:
+        classes = np.array([0, 1])
+        y = np.where(y > 0, 1, 0)
+        weights = class_weight.compute_class_weight(
+            'balanced', classes=classes, y=y.flatten()
+            )
+        y = y.reshape(y.shape[0], y.shape[1], 1)
+
+    return weights[y], {key: value for (key, value) in zip(classes, weights)}
