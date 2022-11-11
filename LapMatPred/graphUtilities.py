@@ -5,7 +5,7 @@ import numpy as np
 
 from LapMatPred.myUtilities import makeSymmetric, removeDiag
 from matplotlib import pyplot as plt
-from pygsp import graphs, plotting
+from pygsp import graphs
 
 #########################################################################################
 # FUNCTIONS
@@ -20,7 +20,7 @@ def erdosRenyi(n, prob, directed=False, rng=None):
     ----------
     n: int
         The number of nodes in the graph
-    prob: int
+    prob: float
         The probability of connection between every two nodes
     directed: bool, default to False
         If True, the edges matrix is returned as is, removing diagonal entries. If
