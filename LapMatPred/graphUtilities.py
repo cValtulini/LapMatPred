@@ -26,7 +26,7 @@ def erdosRenyi(n, prob, directed=False, rng=None):
         If True, the edges matrix is returned as is, removing diagonal entries. If
         False we take the triangular upper matrix and make the edges matrix symmetric
         before removing the diagonal and returning it
-    rng: numpy.random.RandomState, default to None
+    rng: numpy.random.Generator, default to None
         The random number generator to use
 
     Returns
