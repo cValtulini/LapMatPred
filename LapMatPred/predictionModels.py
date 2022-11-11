@@ -92,12 +92,14 @@ class LaplacianPredictionModelQuantizedClassification(LaplacianPredictionModel):
             )
         self.ffn = [
                 layers.Dense(
-                    nodes_number * (nodes_number - 1) // 2, activation='relu'
+                    nodes_number * (nodes_number - 1) // 2, activation='gelu'
                     )
                 for _ in range(self.classes * 2)
                 ]
+
         self.reshape = layers.Reshape((nodes_number*(nodes_number-1)//2, 1))
         self.concat = layers.Concatenate(axis=-1)
+        self.drop = layers.Dropout(0.3)
 
         self.output_layer = layers.Conv1D(self.classes, 1)
 
@@ -105,7 +107,7 @@ class LaplacianPredictionModelQuantizedClassification(LaplacianPredictionModel):
     def call(self, inputs):
         inputs = self.flatten(inputs)
 
-        x = [ffn_layer(inputs) for ffn_layer in self.ffn]
+        x = [self.drop(ffn_layer(inputs)) for ffn_layer in self.ffn]
 
         x = [self.reshape(element) for element in x]
 
