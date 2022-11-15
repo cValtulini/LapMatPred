@@ -2,6 +2,7 @@
 # PACKAGES
 #########################################################################################
 from LapMatPred.graphUtilities import *
+from LapMatPred.predictionModels import relativeError
 
 import numpy as np
 import tensorflow as tf
@@ -213,3 +214,53 @@ def createSampleWeightMask(y, classification=True):
         y = y.reshape(y.shape[0], y.shape[1], 1)
 
     return weights[y], {key: value for (key, value) in zip(classes, weights)}
+
+
+def estimateError(n_classes, nodes_number, connection_probability, size=1000):
+    """
+    Estimates the error of a perfect classification of a sample based on the
+    number of classes used for the quantization.
+
+    Parameters
+    ----------
+    n_classes: int | Iterable(int)
+        The number of classes used for the quantization
+    nodes_number: int
+        The number of nodes in the graph
+    connection_probability: float
+        The probability of a connection between two nodes
+    size: int, default 1000
+        The number of samples to create for the estimation
+
+    Returns
+    -------
+    Dict(int, float):
+        A dictionary containing key, value pair, with the number of classes as
+        key and the estimated error as value
+
+    """
+    errors = []
+
+    _, dataset = createDataset(
+        # Seed shouldn't be set here but anyway
+        np.random.default_rng(seed=42),
+        nodes_number,
+        connection_probability,
+        2,  # We only care about Q_true
+        size,
+    )
+    dataset = np.absolute(
+        [dataset[i] - np.diag(np.diag(dataset[i])) for i in range(size)]
+    )
+    tf_dataset = tf.convert_to_tensor(dataset)
+
+    for number_classes in list(n_classes):
+        # We don't care about the classes, only about the quantized value of
+        # weights
+        _, Q_true = quantizeForClassification(dataset, number_classes)
+        tf_Q_true = tf.convert_to_tensor(Q_true)
+
+        error = relativeError(tf_dataset, tf_Q_true)
+        errors.append(tf.reduce_sum(error).numpy() / size)
+
+    return {key: value for (key, value) in zip(n_classes, errors)}
