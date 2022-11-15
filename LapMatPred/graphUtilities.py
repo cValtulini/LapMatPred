@@ -37,7 +37,7 @@ def erdosRenyi(n, prob, directed=False, rng=None):
     if rng is None:
         rng = np.random.default_rng()
 
-    e = rng.choice([0, 1], size=(n, n), p=(1-prob, prob))  # edge matrix
+    e = rng.choice([0, 1], size=(n, n), p=(1 - prob, prob))  # edge matrix
     a = e * rng.uniform(size=e.shape)  # adjacency matrix
 
     if directed:
@@ -69,6 +69,6 @@ def plotGraph(w, title=None):
     graph = graphs.Graph(w)
     graph.set_coordinates()
 
-    graph.plot(backend='matplotlib', title=title, figsize=(10, 10))
+    graph.plot(backend="matplotlib", title=title, figsize=(10, 10))
 
     plt.show()

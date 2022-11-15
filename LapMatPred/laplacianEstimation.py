@@ -10,7 +10,6 @@ import cvxpy as cp
 # CLASSES
 #########################################################################################
 class ConvexProblem:
-
     def __init__(self, variable, parameters, constraints, cost, minimize=True):
         """
         __init__ Initializes a ConvexProblem object, containing variable, parameters,
@@ -59,9 +58,9 @@ class ConvexProblem:
                 old.value = new
         else:
             print(
-                'WARNING: Number of parameters does not equal number of parameters of '
-                'the problem, parameters not set.'
-                )
+                "WARNING: Number of parameters does not equal number of parameters of "
+                "the problem, parameters not set."
+            )
 
     def solveProblem(self, return_solution=True, verbose=False):
         """
@@ -79,10 +78,11 @@ class ConvexProblem:
         numpy.ndarray
             The problem's solution
         """
-        self.problem.solve(solver='CVXOPT', verbose=verbose)
+        self.problem.solve(solver="CVXOPT", verbose=verbose)
 
         if return_solution:
             return self.variable.value
+
 
 #########################################################################################
 # FUNCTIONS
@@ -109,9 +109,9 @@ def relativeError(m, est, m_norm=None):
         The relative error between m and estimate est
     """
     if m_norm is None:
-        return np.linalg.norm(m - est, ord='fro') / np.linalg.norm(m, ord='fro')
+        return np.linalg.norm(m - est, ord="fro") / np.linalg.norm(m, ord="fro")
     else:
-        return np.linalg.norm(m - est, ord='fro') / m_norm
+        return np.linalg.norm(m - est, ord="fro") / m_norm
 
 
 def coordinateDescent(k, problem, stop_crit=5, max_iter=50, tol=1e-7):
@@ -158,7 +158,7 @@ def coordinateDescent(k, problem, stop_crit=5, max_iter=50, tol=1e-7):
 
             problem.setParameters([q_block, k_col[:, np.newaxis]])
             lamb = problem.solveProblem()
-            q_col = - np.dot(q_block, k_col + lamb.squeeze()) / k_scal
+            q_col = -np.dot(q_block, k_col + lamb.squeeze()) / k_scal
 
             # Set values of q_col with Lagrange multiplier greater than 0 to 0
             q_col[lamb.squeeze() > tol] = 0

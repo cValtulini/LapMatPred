@@ -12,8 +12,8 @@ from sklearn.utils import class_weight
 # FUNCTIONS
 #########################################################################################
 def createDataset(
-        rng, nodes_number, connection_probability, number_of_realizations, set_size
-        ):
+    rng, nodes_number, connection_probability, number_of_realizations, set_size
+):
     """
     Creates a dataset from graphs with the specified number of nodes and connection
     probability following the erdosRenyi model. The dataset is composed by the
@@ -43,9 +43,11 @@ def createDataset(
 
     """
     adjacency = np.array(
-        [erdosRenyi(nodes_number, connection_probability, rng=rng) for _ in range(
-            set_size)]
-        )
+        [
+            erdosRenyi(nodes_number, connection_probability, rng=rng)
+            for _ in range(set_size)
+        ]
+    )
     laplacian = np.array([graphLaplacian(a) for a in adjacency])
 
     q_true = np.eye(nodes_number) + laplacian
@@ -54,13 +56,16 @@ def createDataset(
 
     mean_vector = np.zeros(nodes_number)
     covariance = np.array(
-        [np.cov(
-            rng.multivariate_normal(
-                mean_vector, k_matrix[i], size=number_of_realizations
+        [
+            np.cov(
+                rng.multivariate_normal(
+                    mean_vector, k_matrix[i], size=number_of_realizations
                 ),
-            rowvar=False
-            ) for i in range(k_matrix.shape[0])]
-        )
+                rowvar=False,
+            )
+            for i in range(k_matrix.shape[0])
+        ]
+    )
     return covariance, q_true
 
 
@@ -98,11 +103,11 @@ def splitDataset(x, y, train_size, val_size=None):
     """
 
     if x.shape[0] != y.shape[0]:
-        print('Error: x and y have different number of samples')
+        print("Error: x and y have different number of samples")
         return None
     if val_size is None:
         if x.shape[0] < train_size:
-            print('Error: train_size is greater than the number of samples')
+            print("Error: train_size is greater than the number of samples")
             return None
 
         x_train = tf.convert_to_tensor(x[:train_size])
@@ -114,22 +119,24 @@ def splitDataset(x, y, train_size, val_size=None):
     else:
         if x.shape[0] < train_size or x.shape[0] < train_size + val_size:
             print(
-                'Error: dataset size is not equal to the sum of train and test set sizes'
-                )
+                "Error: dataset size is not equal to the sum of train and test set sizes"
+            )
             return None
 
         x_train = tf.convert_to_tensor(x[:train_size])
-        x_val = tf.convert_to_tensor(x[train_size:train_size+val_size])
-        x_test = tf.convert_to_tensor(x[train_size+val_size:])
+        x_val = tf.convert_to_tensor(x[train_size : train_size + val_size])
+        x_test = tf.convert_to_tensor(x[train_size + val_size :])
 
         y_train = tf.convert_to_tensor(y[:train_size])
-        y_val = tf.convert_to_tensor(y[train_size:train_size+val_size])
-        y_test = tf.convert_to_tensor(y[train_size+val_size:])
+        y_val = tf.convert_to_tensor(y[train_size : train_size + val_size])
+        y_test = tf.convert_to_tensor(y[train_size + val_size :])
 
         return (x_train, y_train), (x_test, y_test), (x_val, y_val)
 
 
-def quantizeForClassification(x, number_of_classes=4, low=0, high=1, avoid_zero=True):
+def quantizeForClassification(
+    x, number_of_classes=4, low=0, high=1, avoid_zero=True
+):
     """
     Quantizes the input data into a specified number of classes. If avoid_zero is True,
     moves all nonzero elements in the input data to the next class.
@@ -160,7 +167,9 @@ def quantizeForClassification(x, number_of_classes=4, low=0, high=1, avoid_zero=
 
     if avoid_zero:
         # We don't want elements different from 0 to be classified as zeros
-        x_classes = np.where((x_classes == 0) == (x == 0), x_classes, x_classes + 1)
+        x_classes = np.where(
+            (x_classes == 0) == (x == 0), x_classes, x_classes + 1
+        )
 
     return x_classes, levels[x_classes]
 
@@ -193,14 +202,14 @@ def createSampleWeightMask(y, classification=True):
         classes = np.unique(y)
         # Function wants a flattened array as y
         weights = class_weight.compute_class_weight(
-            'balanced', classes=classes, y=y.numpy().flatten()
-            )
+            "balanced", classes=classes, y=y.numpy().flatten()
+        )
     else:
         classes = np.array([0, 1])
         y = np.where(y > 0, 1, 0)
         weights = class_weight.compute_class_weight(
-            'balanced', classes=classes, y=y.flatten()
-            )
+            "balanced", classes=classes, y=y.flatten()
+        )
         y = y.reshape(y.shape[0], y.shape[1], 1)
 
     return weights[y], {key: value for (key, value) in zip(classes, weights)}

@@ -11,7 +11,7 @@ from keras import layers, models
 #########################################################################################
 # MAIN CODE
 #########################################################################################
-if __name__ == '__main__':
+if __name__ == "__main__":
     rng = np.random.RandomState(42)
 
     train_set_size = 800
@@ -25,7 +25,7 @@ if __name__ == '__main__':
 
     adjacency = np.array(
         [erdosRenyi(nodes_number, connection_prob) for _ in range(set_size)]
-        )
+    )
     laplacian = np.array([graphLaplacian(a) for a in adjacency])
 
     Q_true = np.eye(nodes_number) + laplacian
@@ -41,19 +41,23 @@ if __name__ == '__main__':
     print("Data generated!")
     print("Building model...")
 
-    model = models.Sequential([
-        layers.Flatten(input_shape=(nodes_number, nodes_number)),
-        layers.Dense(nodes_number**2, activation='relu'),
-        layers.Dense(nodes_number**2, activation='relu'),
-        layers.Reshape((nodes_number, nodes_number))
-    ])
+    model = models.Sequential(
+        [
+            layers.Flatten(input_shape=(nodes_number, nodes_number)),
+            layers.Dense(nodes_number**2, activation="relu"),
+            layers.Dense(nodes_number**2, activation="relu"),
+            layers.Reshape((nodes_number, nodes_number)),
+        ]
+    )
 
     print("Model built!")
     print("Compiling model...")
 
-    model.compile(optimizer='adam',
-                  loss='mean_squared_error',
-                  metrics=['mean_absolute_error'])
+    model.compile(
+        optimizer="adam",
+        loss="mean_squared_error",
+        metrics=["mean_absolute_error"],
+    )
 
     print("Model compiled!")
     print("Training model...")

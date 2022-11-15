@@ -68,15 +68,15 @@ def extractBlock(x, index):
         elif index == x.shape[0] - 1:
             return x[:-1]
         else:
-            return np.hstack((x[:index], x[index + 1:]))
+            return np.hstack((x[:index], x[index + 1 :]))
     elif x.ndim == 2:
         if index == 0:
             return x[1:, 1:]
         elif index == x.shape[0] - 1:
             return x[:-1, :-1]
         else:
-            _ = np.vstack((x[:index], x[index + 1:]))
-            return np.hstack((_[:, :index], _[:, index+1:]))
+            _ = np.vstack((x[:index], x[index + 1 :]))
+            return np.hstack((_[:, :index], _[:, index + 1 :]))
 
 
 def updateBlockMatrix(x_block, x_col, x_scal, index):
@@ -103,6 +103,7 @@ def updateBlockMatrix(x_block, x_col, x_scal, index):
         and column and x_scal as the (index-th, index-th) element, x_col is split at its
         index-th element in order to insert x_scal.
     """
+
     x = np.zeros((x_block.shape[0] + 1, x_block.shape[1] + 1))
 
     if index == 0:
@@ -123,19 +124,21 @@ def updateBlockMatrix(x_block, x_col, x_scal, index):
         x[index, index] = x_scal
 
         x[index, :index] = x_col[:index]
-        x[index, index + 1:] = x_col[index:]
+        x[index, index + 1 :] = x_col[index:]
         x[:index, index] = x_col[:index]
-        x[index + 1:, index] = x_col[index:]
+        x[index + 1 :, index] = x_col[index:]
 
         x[:index, :index] = x_block[:index, :index]
-        x[:index, index + 1:] = x_block[:index, index:]
-        x[index + 1:, :index] = x_block[index:, :index]
-        x[index + 1:, index + 1:] = x_block[index:, index:]
+        x[:index, index + 1 :] = x_block[:index, index:]
+        x[index + 1 :, :index] = x_block[index:, :index]
+        x[index + 1 :, index + 1 :] = x_block[index:, index:]
 
     return x
 
 
-def plotErrorBars(x, y, x_label='', y_label='', title='', labels=None, save=False):
+def plotErrorBars(
+    x, y, x_label="", y_label="", title="", labels=None, save=False
+):
     """
     plotErrorBars plots the error bars of a matrix x and a vector y.
 
@@ -169,18 +172,28 @@ def plotErrorBars(x, y, x_label='', y_label='', title='', labels=None, save=Fals
         if labels is not None:
             for i in range(y.shape[0]):
                 plt.errorbar(
-                    x, y_mean[i], yerr=y_std[i], fmt='o--',
-                    capthick=1, capsize=4, label=labels[i]
-                    )
+                    x,
+                    y_mean[i],
+                    yerr=y_std[i],
+                    fmt="o--",
+                    capthick=1,
+                    capsize=4,
+                    label=labels[i],
+                )
         else:
             for i in range(y.shape[0]):
                 plt.errorbar(
-                    x, y_mean[i], yerr=y_std[i], fmt='o--', capthick=1, capsize=4
-                    )
+                    x,
+                    y_mean[i],
+                    yerr=y_std[i],
+                    fmt="o--",
+                    capthick=1,
+                    capsize=4,
+                )
     else:
-        plt.errorbar(x, y_mean, yerr=y_std, fmt='o--', capthick=1, capsize=4)
+        plt.errorbar(x, y_mean, yerr=y_std, fmt="o--", capthick=1, capsize=4)
 
-    plt.xscale('log')
+    plt.xscale("log")
 
     plt.xlabel(x_label)
     plt.ylabel(y_label)
@@ -194,4 +207,4 @@ def plotErrorBars(x, y, x_label='', y_label='', title='', labels=None, save=Fals
     plt.show()
 
     if save:
-        plt.savefig(f'{title}.png')
+        plt.savefig(f"{title}.png")
