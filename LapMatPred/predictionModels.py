@@ -145,6 +145,28 @@ def relativeError(y_true, y_pred):
     )
 
 
+def relativeErrorUpperDiagonal(y_true, y_pred):
+    """
+    Computes the relative error between true and predicted values.
+    The error is given by || y_true - y_pred || / || y_true || where || . || is the
+    Eucledian norm.
+
+    Parameters
+    ----------
+    y_true: tensorflow.Tensor
+        True values, shape (batch_size, N, N)
+    y_pred: tensorflow.Tensor
+        Predicted values, shape (batch_size, N, N)
+
+    Returns
+    -------
+    tensorflow.Tensor
+        The relative error, as defined
+
+    """
+    return tf.norm(y_true - y_pred, axis=-1) / tf.norm(y_true, axis=-1)
+
+
 def edgesPrecision(y_true, y_pred):
     """
     Computes the precision in identifying edges of a model, meaning that weights' values
