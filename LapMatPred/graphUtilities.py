@@ -72,3 +72,28 @@ def plotGraph(w, title=None):
     graph.plot(backend="matplotlib", title=title, figsize=(10, 10))
 
     plt.show()
+
+
+def reconstructLaplacian(x, original_shape):
+    new = np.zeros(shape=original_shape)
+    ind_i, ind_j = np.triu_indices_from(
+        np.zeros(shape=(original_shape[-2], original_shape[-1])), k=1
+    )
+
+    if new.ndim == 2:
+        for i, j, element in zip(ind_i, ind_j, x):
+            new[i, j] = -element
+            new[j, i] = -element
+
+        for i in range(original_shape[-1]):
+            new[i, i] = -np.sum(new[i, :])
+    elif new.ndim == 3:
+        for t in range(original_shape[0]):
+            for i, j, element in zip(ind_i, ind_j, x[t]):
+                new[t, i, j] = -element
+                new[t, j, i] = -element
+
+            for i in range(original_shape[-1]):
+                new[t, i, i] = -np.sum(new[t, i, :])
+
+    return new
