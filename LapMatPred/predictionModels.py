@@ -40,6 +40,10 @@ class LaplacianPredictionModelFC(LaplacianPredictionModel):
         self.flatten = layers.Reshape(
             (nodes_number**2,), input_shape=(nodes_number, nodes_number)
         )
+        self.normalize = [
+            layers.BatchNormalization(axis=-1) for _ in range(depth)
+        ]
+
         self.ffn = [
             layers.Dense(nodes_number**2, activation=activation)
             for _ in range(depth)
@@ -53,9 +57,11 @@ class LaplacianPredictionModelFC(LaplacianPredictionModel):
             )
             for _ in range(depth)
         ]
+
         self.output_layer = layers.Dense(
             nodes_number * (nodes_number - 1) // 2, activation=activation
         )
+
         self.drop = layers.Dropout(0.2)
         self.reshape = layers.Reshape(
             (nodes_number, nodes_number, 1), input_shape=(nodes_number**2,)
@@ -66,8 +72,11 @@ class LaplacianPredictionModelFC(LaplacianPredictionModel):
         # Flattens the input to be fed to the FFN
         x = self.flatten(inputs)
 
-        for ffn_layer, conv_layer in zip(self.ffn, self.conv):
+        for ffn_layer, conv_layer, norm_layer in zip(
+            self.ffn, self.conv, self.normalize
+        ):
             # Creates new copy of current input to be given to 1x1 Convolutional Layer
+            x = norm_layer(x)
             previous = self.reshape(x)
 
             x = self.reshape(self.drop(ffn_layer(x)))
