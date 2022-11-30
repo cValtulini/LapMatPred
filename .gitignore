@@ -8,6 +8,5 @@ __pycache__
 
 # Apple folder config
 .DS_Store
-/cov_nodes25_ds70000_real3000.npy
-/gt_nodes25_ds70000_real3000.npy
+/*.npy
 /result_data.json

@@ -34,7 +34,9 @@ class LaplacianPredictionModelFC(LaplacianPredictionModel):
     information about previous representations and to reduce backpropagation problems.
     """
 
-    def __init__(self, nodes_number, depth=1, activation="relu"):
+    def __init__(
+        self, nodes_number, depth=1, activation="relu", h_activation="relu"
+    ):
         super().__init__(nodes_number)
 
         self.flatten = layers.Reshape(
@@ -45,7 +47,7 @@ class LaplacianPredictionModelFC(LaplacianPredictionModel):
         ]
 
         self.ffn = [
-            layers.Dense(nodes_number**2, activation=activation)
+            layers.Dense(nodes_number**2, activation=h_activation)
             for _ in range(depth)
         ]
         self.conv = [
