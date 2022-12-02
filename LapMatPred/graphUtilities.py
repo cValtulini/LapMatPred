@@ -66,6 +66,20 @@ def graphLaplacian(a):
 
 
 def plotGraph(w, title=None):
+    """
+    Simple function to plot a graph given its weight matrix
+
+    Parameters
+    ----------
+    w: numpy.ndarray, shape=(n, n)
+        The weight matrix of the graph
+    title: str, default to None
+        The title for the plot
+
+    Returns
+    -------
+    None
+    """
     graph = graphs.Graph(w)
     graph.set_coordinates()
 
@@ -75,9 +89,30 @@ def plotGraph(w, title=None):
 
 
 def reconstructLaplacian(x, original_shape):
+    """
+    reconstructLaplacian reconstructs the laplacian matrix assuming it has been
+    decomposed extracting its upper triangolar without the main diagonal and
+    flattening it. If original_shape is a Tuple[int, int, int] assumes that x has
+    shape (n_samples, n).
+
+    Parameters
+    ----------
+    x: numpy.ndarray, shape=(n, )
+        The flattened upper triangular part of the laplacian matrix
+    original_shape: tuple
+        The original shape of the laplacian matrix, helps avoiding inference of
+        the shape from the flattened array
+
+    Returns
+    -------
+
+    """
     new = np.zeros(shape=original_shape)
     ind_i, ind_j = np.triu_indices_from(
-        np.zeros(shape=(original_shape[-2], original_shape[-1])), k=1
+        # if new.ndim == 3 we are assuming its a batch of matrices that need to
+        # be reeconstructed
+        np.zeros(shape=(original_shape[-2], original_shape[-1])),
+        k=1,
     )
 
     if new.ndim == 2:

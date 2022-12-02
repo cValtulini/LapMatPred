@@ -87,6 +87,7 @@ class LaplacianPredictionModelFC(LaplacianPredictionModel):
         return self.output_layer(x)
 
 
+# Not used and code to use it has been removed from notebooks
 class LaplacianPredictionModelQuantizedClassification(LaplacianPredictionModel):
 
     # The idea is to quantize the Laplacian matrix in order to have a classification
@@ -123,10 +124,6 @@ class LaplacianPredictionModelQuantizedClassification(LaplacianPredictionModel):
         x = [self.reshape(element) for element in x]
 
         return self.output_layer(self.concat(x))
-
-
-# LAYERS
-#########################################################################################
 
 
 #########################################################################################

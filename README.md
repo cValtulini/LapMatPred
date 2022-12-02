@@ -6,3 +6,4 @@ Links:
 - [Optimization Notebook](https://drive.google.com/file/d/150xsrO-JczGPWxWPL5tB4Aj0UEGxXYmN/view?usp=sharing)
 - [Data](https://drive.google.com/drive/folders/1wXUsNYOijPzHzkDdndFLDDe8FEFB1M_D?usp=sharing)
 
+Python Version: 3.10.1

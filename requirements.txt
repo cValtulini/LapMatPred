@@ -1,7 +1,9 @@
-numpy>=1.22.4
-scikit-learn>=1.1.2
-tqdm>=4.64.1
-scipy>=1.9.1
-cvxpy>=1.2.1
-matplotlib>=3.6.0
-tensorflow>=2.10.0
+cvxpy==1.2.1
+matplotlib==3.6.0
+numpy==1.22.4
+pandas==1.5.0
+PyGSP==0.5.1
+scikit-learn==1.1.2
+scipy==1.9.1
+tensorflow==2.10.0
+tqdm==4.64.1
