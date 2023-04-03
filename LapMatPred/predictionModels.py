@@ -23,7 +23,7 @@ class LaplacianPredictionModel(tf.keras.Model):
         super().__init__()
         self.nodes_number = nodes_number
 
-    def loadSavedModel(self, path):
+    def load_saved_model(self, path):
         pass
 
 
@@ -34,17 +34,13 @@ class LaplacianPredictionModelFC(LaplacianPredictionModel):
     information about previous representations and to reduce backpropagation problems.
     """
 
-    def __init__(
-        self, nodes_number, depth=1, activation="relu", h_activation="relu"
-    ):
+    def __init__(self, nodes_number, depth=1, activation="relu", h_activation="relu"):
         super().__init__(nodes_number)
 
         self.flatten = layers.Reshape(
             (nodes_number**2,), input_shape=(nodes_number, nodes_number)
         )
-        self.normalize = [
-            layers.BatchNormalization(axis=-1) for _ in range(depth)
-        ]
+        self.normalize = [layers.BatchNormalization(axis=-1) for _ in range(depth)]
 
         self.ffn = [
             layers.Dense(nodes_number**2, activation=h_activation)
@@ -102,15 +98,11 @@ class LaplacianPredictionModelQuantizedClassification(LaplacianPredictionModel):
             (nodes_number**2,), input_shape=(nodes_number, nodes_number)
         )
         self.ffn = [
-            layers.Dense(
-                nodes_number * (nodes_number - 1) // 2, activation="gelu"
-            )
+            layers.Dense(nodes_number * (nodes_number - 1) // 2, activation="gelu")
             for _ in range(self.classes * 2)
         ]
 
-        self.reshape = layers.Reshape(
-            (nodes_number * (nodes_number - 1) // 2, 1)
-        )
+        self.reshape = layers.Reshape((nodes_number * (nodes_number - 1) // 2, 1))
         self.concat = layers.Concatenate(axis=-1)
         self.drop = layers.Dropout(0.3)
 
@@ -205,9 +197,7 @@ def edgesPrecision(y_true, y_pred):
         dtype=tf.float32,
     )
 
-    return tf.reduce_sum(true_p) / (
-        tf.reduce_sum(true_p) + tf.reduce_sum(false_p)
-    )
+    return tf.reduce_sum(true_p) / (tf.reduce_sum(true_p) + tf.reduce_sum(false_p))
 
 
 def edgesRecall(y_true, y_pred):
@@ -240,9 +230,7 @@ def edgesRecall(y_true, y_pred):
         dtype=tf.float32,
     )
 
-    return tf.reduce_sum(true_p) / (
-        tf.reduce_sum(true_p) + tf.reduce_sum(false_n)
-    )
+    return tf.reduce_sum(true_p) / (tf.reduce_sum(true_p) + tf.reduce_sum(false_n))
 
 
 def edgesAccuracy(y_true, y_pred):

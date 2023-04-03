@@ -7,7 +7,7 @@ from matplotlib import pyplot as plt
 #########################################################################################
 # FUNCTIONS
 #########################################################################################
-def removeDiag(m):
+def remove_diag(m):
     """
     removeDiag returns a matrix containing 0 on the diagonal and filled with the values of
     m on the rest of the matrix.
@@ -25,7 +25,7 @@ def removeDiag(m):
     return m - np.diag(np.diag(m))
 
 
-def makeSymmetric(m):
+def make_symmetric(m):
     """
     makeSymmetric creates a symmetric matrix from a matrix m. The returned matrix
     contains the values of the upper triangle of m, both on the upper triangle and on the
@@ -41,10 +41,10 @@ def makeSymmetric(m):
     numpy.ndarray, shape=(n, n)
         np.triu(m) + np.triu(m').T where m' is m - diag(m)
     """
-    return np.triu(m) + np.triu(removeDiag(m)).T
+    return np.triu(m) + np.triu(remove_diag(m)).T
 
 
-def extractBlock(x, index):
+def extract_block(x, index):
     """
     extractBlock returns matrix x without index-th row and column or array x without
     index-th element.
@@ -79,7 +79,7 @@ def extractBlock(x, index):
             return np.hstack((_[:, :index], _[:, index + 1 :]))
 
 
-def updateBlockMatrix(x_block, x_col, x_scal, index):
+def update_block_matrix(x_block, x_col, x_scal, index):
     """
     updateBlockMatrix returns a matrix built from x_block, x_col and x_scal by inserting
     x_col at index-th row and column and x_scal at (index-th, index-th) position of the
@@ -136,9 +136,7 @@ def updateBlockMatrix(x_block, x_col, x_scal, index):
     return x
 
 
-def plotErrorBars(
-    x, y, x_label="", y_label="", title="", labels=None, save=False
-):
+def plot_error_bars(x, y, x_label="", y_label="", title="", labels=None, save=False):
     """
     plotErrorBars plots the error bars of a matrix x and a vector y.
 

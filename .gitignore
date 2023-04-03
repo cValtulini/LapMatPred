@@ -6,7 +6,13 @@ __pycache__
 # Python Notebooks
 *.ipynb
 
+# Extra Files
+*.pdf
+*.csv
+*.png
+
 # Apple folder config
 .DS_Store
 /*.npy
 /result_data.json
+extra/

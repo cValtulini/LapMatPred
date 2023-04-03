@@ -12,7 +12,7 @@ from sklearn.utils import class_weight
 #########################################################################################
 # FUNCTIONS
 #########################################################################################
-def createDataset(
+def create_dataset(
     rng, nodes_number, connection_probability, number_of_realizations, set_size
 ):
     """
@@ -45,11 +45,11 @@ def createDataset(
     """
     adjacency = np.array(
         [
-            erdosRenyi(nodes_number, connection_probability, rng=rng)
+            erdos_renyi(nodes_number, connection_probability, rng=rng)
             for _ in range(set_size)
         ]
     )
-    laplacian = np.array([graphLaplacian(a) for a in adjacency])
+    laplacian = np.array([graph_laplacian(a) for a in adjacency])
 
     q_true = np.eye(nodes_number) + laplacian
 
@@ -70,7 +70,7 @@ def createDataset(
     return covariance, q_true
 
 
-def splitDataset(x, y, train_size, val_size=None):
+def split_dataset(x, y, train_size, val_size=None):
     """
     Splits the dataset into training, validation and test sets. If val_size is None
     train is given by samples up to train_size and test is given by remaining samples.
@@ -135,9 +135,7 @@ def splitDataset(x, y, train_size, val_size=None):
         return (x_train, y_train), (x_test, y_test), (x_val, y_val)
 
 
-def quantizeForClassification(
-    x, number_of_classes=4, low=0, high=1, avoid_zero=True
-):
+def quantize_for_classification(x, number_of_classes=4, low=0, high=1, avoid_zero=True):
     """
     Quantizes the input data into a specified number of classes. If avoid_zero is True,
     moves all nonzero elements in the input data to the next class.
@@ -168,14 +166,12 @@ def quantizeForClassification(
 
     if avoid_zero:
         # We don't want elements different from 0 to be classified as zeros
-        x_classes = np.where(
-            (x_classes == 0) == (x == 0), x_classes, x_classes + 1
-        )
+        x_classes = np.where((x_classes == 0) == (x == 0), x_classes, x_classes + 1)
 
     return x_classes, levels[x_classes]
 
 
-def createSampleWeightMask(y, classification=True):
+def create_sample_weight_mask(y, classification=True):
     """
     Creates a mask for the sample weights. If classification is True, the mask is giveb
     by class weights for each sample, otherwise the function is intended to be used to
@@ -216,7 +212,7 @@ def createSampleWeightMask(y, classification=True):
     return weights[y], {key: value for (key, value) in zip(classes, weights)}
 
 
-def estimateError(n_classes, nodes_number, connection_probability, size=1000):
+def estimate_error(n_classes, nodes_number, connection_probability, size=1000):
     """
     Estimates the error of a perfect classification of a sample based on the
     number of classes used for the quantization.
@@ -241,7 +237,7 @@ def estimateError(n_classes, nodes_number, connection_probability, size=1000):
     """
     errors = []
 
-    _, dataset = createDataset(
+    _, dataset = create_dataset(
         # Seed shouldn't be set here but anyway
         np.random.default_rng(seed=42),
         nodes_number,
@@ -257,10 +253,10 @@ def estimateError(n_classes, nodes_number, connection_probability, size=1000):
     for number_classes in list(n_classes):
         # We don't care about the classes, only about the quantized value of
         # weights
-        _, Q_true = quantizeForClassification(dataset, number_classes)
+        _, Q_true = quantize_for_classification(dataset, number_classes)
         tf_Q_true = tf.convert_to_tensor(Q_true)
 
-        error = relativeError(tf_dataset, tf_Q_true)
+        error = relative_error(tf_dataset, tf_Q_true)
         errors.append(tf.reduce_sum(error).numpy() / size)
 
     return {key: value for (key, value) in zip(n_classes, errors)}

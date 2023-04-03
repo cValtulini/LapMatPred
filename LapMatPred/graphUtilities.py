@@ -3,16 +3,16 @@
 #########################################################################################
 import numpy as np
 
-from LapMatPred.myUtilities import makeSymmetric, removeDiag
+from LapMatPred.myUtilities import make_symmetric, remove_diag
 from matplotlib import pyplot as plt
 from pygsp import graphs
 
 #########################################################################################
 # FUNCTIONS
 #########################################################################################
-def erdosRenyi(n, prob, directed=False, rng=None):
+def erdos_renyi(n, prob, directed=False, rng=None):
     """
-    erdosRenyi return the matrix of weights (adjacency) for a graph with n
+    erdos_renyi return the matrix of weights (adjacency) for a graph with n
     nodes and p probability of connection between two nodes. Weights in the adjacency
     matrix are extracted from a uniform distribution between [0, 1]
 
@@ -41,12 +41,12 @@ def erdosRenyi(n, prob, directed=False, rng=None):
     a = e * rng.uniform(size=e.shape)  # adjacency matrix
 
     if directed:
-        return removeDiag(a)
+        return remove_diag(a)
 
-    return removeDiag(makeSymmetric(a))
+    return remove_diag(make_symmetric(a))
 
 
-def graphLaplacian(a):
+def graph_laplacian(a):
     """
     graphMatrices return the laplacian matrix of a graph given its
     adjacency matrix.
@@ -65,7 +65,7 @@ def graphLaplacian(a):
     return np.diag(np.sum(a, axis=-1)) - a
 
 
-def plotGraph(w, title=None):
+def plot_graph(w, title=None):
     """
     Simple function to plot a graph given its weight matrix
 
@@ -88,7 +88,7 @@ def plotGraph(w, title=None):
     plt.show()
 
 
-def reconstructLaplacian(x, original_shape):
+def reconstruct_laplacian(x, original_shape):
     """
     reconstructLaplacian reconstructs the laplacian matrix assuming it has been
     decomposed extracting its upper triangolar without the main diagonal and

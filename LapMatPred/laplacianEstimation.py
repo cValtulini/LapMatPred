@@ -1,7 +1,7 @@
 #########################################################################################
 # PACKAGES
 #########################################################################################
-from LapMatPred.myUtilities import extractBlock, updateBlockMatrix
+from LapMatPred.myUtilities import extract_block, update_block_matrix
 
 import numpy as np
 import cvxpy as cp
@@ -38,7 +38,7 @@ class ConvexProblem:
         else:
             self.problem = cp.Problem(cp.Maximize(cost), constraints)
 
-    def setParameters(self, parameters):
+    def set_parameters(self, parameters):
         """
         setParameters set the value for the problem's parameters, after checking if the
         length of the list of values is the same as the length of self.parameters
@@ -62,7 +62,7 @@ class ConvexProblem:
                 "the problem, parameters not set."
             )
 
-    def solveProblem(self, return_solution=True, verbose=False):
+    def solve_problem(self, return_solution=True, verbose=False):
         """
         solveProblem calls the solve method on self.problem
 
@@ -87,7 +87,7 @@ class ConvexProblem:
 #########################################################################################
 # FUNCTIONS
 #########################################################################################
-def relativeError(m, est, m_norm=None):
+def relative_error(m, est, m_norm=None):
     """
     relativeError computes the relative error between matrix m and its estimation est
     ||m-est|| / ||m|| using Frobenius norm.
@@ -114,7 +114,7 @@ def relativeError(m, est, m_norm=None):
         return np.linalg.norm(m - est, ord="fro") / m_norm
 
 
-def coordinateDescent(k, problem, stop_crit=5, max_iter=50, tol=1e-7):
+def coordinate_descent(k, problem, stop_crit=5, max_iter=50, tol=1e-7):
     """
     coordinateDescent estimates the matrix q, a generalized laplacian precision matrix,
     with a coordinate descent algorithm based on convex optimization starting from
@@ -152,19 +152,19 @@ def coordinateDescent(k, problem, stop_crit=5, max_iter=50, tol=1e-7):
         iterations += 1
 
         for col in range(k.shape[0]):
-            q_block = extractBlock(q_new, col)
-            k_col = extractBlock(k[:, col], col)
+            q_block = extract_block(q_new, col)
+            k_col = extract_block(k[:, col], col)
             k_scal = k[col, col]
 
-            problem.setParameters([q_block, k_col[:, np.newaxis]])
-            lamb = problem.solveProblem()
+            problem.set_parameters([q_block, k_col[:, np.newaxis]])
+            lamb = problem.solve_problem()
             q_col = -np.dot(q_block, k_col + lamb.squeeze()) / k_scal
 
             # Set values of q_col with Lagrange multiplier greater than 0 to 0
             q_col[lamb.squeeze() > tol] = 0
             q_scal = (1 - np.dot(q_col, k_col)) / k_scal
 
-            q_new = updateBlockMatrix(q_block, q_col, q_scal, col)
+            q_new = update_block_matrix(q_block, q_col, q_scal, col)
 
         delta = np.absolute(q - q_new).max()
 
