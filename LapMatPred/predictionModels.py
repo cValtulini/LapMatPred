@@ -1,18 +1,14 @@
-#########################################################################################
+################################################################################
 # PACKAGES
-#########################################################################################
+################################################################################
 import tensorflow as tf
 from tensorflow.keras import layers, models, losses
 
-
-# import tensorflow.keras.backend as K
-
-
-#########################################################################################
+################################################################################
 # CLASSES
-#########################################################################################
+################################################################################
 # MODELS
-#########################################################################################
+################################################################################
 class LaplacianPredictionModel(tf.keras.Model):
     """
     General class to be inherited by all the models, mainly containing common parameters
@@ -62,12 +58,14 @@ class LaplacianPredictionModelFC(LaplacianPredictionModel):
 
         self.drop = layers.Dropout(0.2)
         self.reshape = layers.Reshape(
-            (nodes_number, nodes_number, 1), input_shape=(nodes_number**2,)
+            (nodes_number, nodes_number, 1),
+            input_shape=(nodes_number**2,),
         )
         self.concat = layers.Concatenate(axis=-1)
 
     def call(self, inputs):
         # Flattens the input to be fed to the FFN
+        # inputs = tf.reshape(inputs, shape=(-1, self.nodes_number, self.nodes_number))
         x = self.flatten(inputs)
 
         for ffn_layer, conv_layer, norm_layer in zip(
@@ -83,44 +81,9 @@ class LaplacianPredictionModelFC(LaplacianPredictionModel):
         return self.output_layer(x)
 
 
-# Not used and code to use it has been removed from notebooks
-class LaplacianPredictionModelQuantizedClassification(LaplacianPredictionModel):
-
-    # The idea is to quantize the Laplacian matrix in order to have a classification
-    # problem. Where the classes are given by the quantization levels an element of the
-    # matrix is assigned to.
-
-    def __init__(self, nodes_number, classes):
-        super().__init__(nodes_number)
-        self.classes = classes
-
-        self.flatten = layers.Reshape(
-            (nodes_number**2,), input_shape=(nodes_number, nodes_number)
-        )
-        self.ffn = [
-            layers.Dense(nodes_number * (nodes_number - 1) // 2, activation="gelu")
-            for _ in range(self.classes * 2)
-        ]
-
-        self.reshape = layers.Reshape((nodes_number * (nodes_number - 1) // 2, 1))
-        self.concat = layers.Concatenate(axis=-1)
-        self.drop = layers.Dropout(0.3)
-
-        self.output_layer = layers.Conv1D(self.classes, 1)
-
-    def call(self, inputs):
-        inputs = self.flatten(inputs)
-
-        x = [self.drop(ffn_layer(inputs)) for ffn_layer in self.ffn]
-
-        x = [self.reshape(element) for element in x]
-
-        return self.output_layer(self.concat(x))
-
-
-#########################################################################################
+################################################################################
 # FUNCTIONS
-#########################################################################################
+################################################################################
 def relativeError(y_true, y_pred):
     """
     Computes the relative error between true and predicted values.

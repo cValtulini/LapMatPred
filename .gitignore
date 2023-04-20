@@ -13,6 +13,9 @@ __pycache__
 
 # Apple folder config
 .DS_Store
+
+
 /*.npy
 /result_data.json
 extra/
+images/
