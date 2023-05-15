@@ -58,8 +58,7 @@ class ConvexProblem:
                 old.value = new
         else:
             print(
-                "WARNING: Number of parameters does not equal number of parameters of "
-                "the problem, parameters not set."
+                "WARNING: Number of parameters does not equal number of parameters of the problem, parameters not set."
             )
 
     def solve_problem(self, return_solution=True, verbose=False):
@@ -84,9 +83,9 @@ class ConvexProblem:
             return self.variable.value
 
 
-#########################################################################################
+################################################################################
 # FUNCTIONS
-#########################################################################################
+################################################################################
 def relative_error(m, est, m_norm=None):
     """
     relativeError computes the relative error between matrix m and its estimation est
@@ -108,10 +107,12 @@ def relative_error(m, est, m_norm=None):
     int
         The relative error between m and estimate est
     """
+    order = "fro" if len(m.shape) == 2 else None
+
     if m_norm is None:
-        return np.linalg.norm(m - est, ord="fro") / np.linalg.norm(m, ord="fro")
-    else:
-        return np.linalg.norm(m - est, ord="fro") / m_norm
+        m_norm = np.linalg.norm(m, ord=order)
+
+    return np.linalg.norm(m - est, ord=order) / m_norm
 
 
 def coordinate_descent(k, problem, stop_crit=5, max_iter=50, tol=1e-7):

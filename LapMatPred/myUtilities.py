@@ -1,12 +1,12 @@
-#########################################################################################
+################################################################################
 # PACKAGES
-#########################################################################################
+################################################################################
 import numpy as np
 from matplotlib import pyplot as plt
 
-#########################################################################################
+################################################################################
 # FUNCTIONS
-#########################################################################################
+################################################################################
 def remove_diag(m):
     """
     removeDiag returns a matrix containing 0 on the diagonal and filled with the values of
@@ -206,3 +206,74 @@ def plot_error_bars(x, y, x_label="", y_label="", title="", labels=None, save=Fa
 
     if save:
         plt.savefig(f"{title}.png")
+
+
+def plot_error_bars(x, y, x_label="", y_label="", title="", labels=None, save=False):
+    """
+    plot_error_bars plots the error bars of a matrix x and a vector y.
+
+    Parameters
+    ----------
+    x: numpy.ndarray, shape=(n, 1)
+        A column vector
+    y: numpy.ndarray, shape=(None, n, m)
+        A matrix
+    x_label: str
+        The label of the x-axis
+    y_label: str
+        The label of the y-axis
+    labels: list, optional
+        A list of strings to label the x-axis and the y-axis
+    title: str, optional
+        The title of the plot
+    save: bool, optional
+        If True, the plot is saved as a png file
+
+    Returns
+    -------
+    None
+    """
+    y_mean = y.mean(axis=-1)
+    y_std = y.std(axis=-1)
+
+    plt.figure(figsize=(10, 10))
+    plt.title(title)
+    if y.ndim == 3:
+        if labels is not None:
+            for i in range(y.shape[0]):
+                plt.errorbar(
+                    x,
+                    y_mean[i],
+                    yerr=y_std[i],
+                    fmt="o--",
+                    capthick=1,
+                    capsize=4,
+                    label=labels[i],
+                )
+        else:
+            for i in range(y.shape[0]):
+                plt.errorbar(
+                    x,
+                    y_mean[i],
+                    yerr=y_std[i],
+                    fmt="o--",
+                    capthick=1,
+                    capsize=4,
+                )
+    else:
+        plt.errorbar(x, y_mean, yerr=y_std, fmt="o--", capthick=1, capsize=4)
+
+    plt.xscale("log")
+
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+
+    plt.xlim(np.array(x).min() - 5, np.array(x).max() + 1000)
+
+    if labels is not None:
+        plt.legend()
+
+    if save:
+        plt.savefig(f"{title}.png")
+
+    plt.show()

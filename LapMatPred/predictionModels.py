@@ -19,8 +19,10 @@ class LaplacianPredictionModel(tf.keras.Model):
         super().__init__()
         self.nodes_number = nodes_number
 
-    def load_saved_model(self, path):
-        pass
+    def get_config(self):
+        config = super().get_config()
+        config.update({"nodes_number": self.nodes_number})
+        return config
 
 
 class LaplacianPredictionModelFC(LaplacianPredictionModel):
@@ -33,39 +35,29 @@ class LaplacianPredictionModelFC(LaplacianPredictionModel):
     def __init__(self, nodes_number, depth=1, activation="relu", h_activation="relu"):
         super().__init__(nodes_number)
 
-        self.flatten = layers.Reshape(
-            (nodes_number**2,), input_shape=(nodes_number, nodes_number)
-        )
+        nn = self.nodes_number
+
+        self.flatten = layers.Reshape((nn**2,), input_shape=(nn, nn))
         self.normalize = [layers.BatchNormalization(axis=-1) for _ in range(depth)]
 
         self.ffn = [
-            layers.Dense(nodes_number**2, activation=h_activation)
-            for _ in range(depth)
+            layers.Dense(nn**2, activation=h_activation) for _ in range(depth)
         ]
         self.conv = [
-            layers.Conv2D(
-                1,
-                1,
-                activation=activation,
-                input_shape=(nodes_number, nodes_number, 2),
-            )
+            layers.Conv2D(1, 1, activation=activation, input_shape=(nn, nn, 2))
             for _ in range(depth)
         ]
 
-        self.output_layer = layers.Dense(
-            nodes_number * (nodes_number - 1) // 2, activation=activation
-        )
+        self.output_layer = layers.Dense(nn * (nn - 1) // 2, activation=activation)
 
         self.drop = layers.Dropout(0.2)
-        self.reshape = layers.Reshape(
-            (nodes_number, nodes_number, 1),
-            input_shape=(nodes_number**2,),
-        )
+        self.reshape = layers.Reshape((nn, nn, 1), input_shape=(nn**2,))
         self.concat = layers.Concatenate(axis=-1)
+
+        del nn
 
     def call(self, inputs):
         # Flattens the input to be fed to the FFN
-        # inputs = tf.reshape(inputs, shape=(-1, self.nodes_number, self.nodes_number))
         x = self.flatten(inputs)
 
         for ffn_layer, conv_layer, norm_layer in zip(
@@ -80,6 +72,18 @@ class LaplacianPredictionModelFC(LaplacianPredictionModel):
 
         return self.output_layer(x)
 
+    def get_config(self):
+        config = super().get_config()
+        config.update({"flatten": self.flatten})
+        config.update({"normalize": self.normalize})
+        config.update({"ffn": self.ffn})
+        config.update({"conv": self.conv})
+        config.update({"output_layer": self.output_layer})
+        config.update({"drop": self.drop})
+        config.update({"reshape": self.reshape})
+        config.update({"concat": self.concat})
+        return config
+
 
 ################################################################################
 # FUNCTIONS
@@ -89,30 +93,6 @@ def relativeError(y_true, y_pred):
     Computes the relative error between true and predicted values.
     The error is given by || y_true - y_pred || / || y_true || where || . || is the
     Frobenius norm.
-
-    Parameters
-    ----------
-    y_true: tensorflow.Tensor
-        True values, shape (batch_size, N, N)
-    y_pred: tensorflow.Tensor
-        Predicted values, shape (batch_size, N, N)
-
-    Returns
-    -------
-    tensorflow.Tensor
-        The relative error, as defined
-
-    """
-    return tf.norm(y_true - y_pred, ord="fro", axis=[-2, -1]) / tf.norm(
-        y_true, ord="fro", axis=[-2, -1]
-    )
-
-
-def relativeErrorUpperDiagonal(y_true, y_pred):
-    """
-    Computes the relative error between true and predicted values.
-    The error is given by || y_true - y_pred || / || y_true || where || . || is the
-    Eucledian norm.
 
     Parameters
     ----------

@@ -2,6 +2,7 @@ __pycache__
 
 # IDE Config Files
 .idea/
+.vscode/
 
 # Python Notebooks
 *.ipynb
@@ -14,8 +15,12 @@ __pycache__
 # Apple folder config
 .DS_Store
 
+LapMatPred/legacy.py
 
 /*.npy
 /result_data.json
 extra/
 images/
+data/
+models/
+out/
