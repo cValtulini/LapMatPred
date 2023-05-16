@@ -20,6 +20,7 @@ FEATURES_DESCRIPTION = feature_description = {
     "q_true_raw": tf.io.FixedLenFeature([], tf.string),
 }
 
+
 ################################################################################
 # FUNCTIONS
 ################################################################################
@@ -27,7 +28,9 @@ def _bytes_feature(value):
     return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
 
 
-def create_sample(rng, nodes_number, connection_probability, number_of_realizations):
+def create_sample(
+    rng, nodes_number, connection_probability, number_of_realizations, q=None
+):
     # TODO: Modify doc (copy pasted from create_dataset)
     """
     Creates a dataset from graphs with the specified number of nodes and connection
@@ -57,50 +60,73 @@ def create_sample(rng, nodes_number, connection_probability, number_of_realizati
         The ground truths generalized laplacian matrices
 
     """
-    adjacency = erdos_renyi(nodes_number, connection_probability, rng=rng)
-    laplacian = graph_laplacian(adjacency)
+    if q is None:
+        adjacency = erdos_renyi(nodes_number, connection_probability, rng=rng)
+        laplacian = graph_laplacian(adjacency)
 
-    q_true = np.eye(nodes_number) + laplacian
+        q_true = np.eye(nodes_number) + laplacian
+    else:
+        q_true = q
 
     k_matrix = np.linalg.inv(q_true)
 
-    mean_vector = np.zeros(nodes_number)
+    # mean_vector = np.zeros(nodes_number)
     covariance = np.cov(
-        rng.multivariate_normal(mean_vector, k_matrix, size=number_of_realizations),
+        rng.multivariate_normal(
+            np.zeros(nodes_number), k_matrix, size=number_of_realizations
+        ),
         rowvar=False,
     )
     return covariance, q_true
 
 
 def create_tfr_set(
-    rng, nodes_number, connection_probability, number_of_realizations, set_size, path
+    rng,
+    nodes_number,
+    connection_probability,
+    number_of_realizations,
+    set_size,
+    path,
+    repetitions=1,
 ):
-    """Converts a dataset to tfrecords."""
+    """Creates a dataset in the tfrecords format."""
 
     filename = os.path.join(path + ".tfrecords")
     print("Writing", filename)
 
     writer = tf.io.TFRecordWriter(filename)
-    for index in range(set_size):
-        sample = create_sample(
+    for index in range(set_size // repetitions):
+        sample_zero = create_sample(
             rng, nodes_number, connection_probability, number_of_realizations
         )
-
-        covariance_tf = tf.convert_to_tensor(sample[0])
-        q_true_tf = tf.convert_to_tensor(sample[1])
-
-        covariance_raw = tf.io.serialize_tensor(covariance_tf)
-        q_true_raw = tf.io.serialize_tensor(q_true_tf)
-
-        example = tf.train.Example(
-            features=tf.train.Features(
-                feature={
-                    "covariance_raw": _bytes_feature(covariance_raw.numpy()),
-                    "q_true_raw": _bytes_feature(q_true_raw.numpy()),
-                }
+        samples = [
+            create_sample(
+                rng,
+                nodes_number,
+                connection_probability,
+                number_of_realizations,
+                q=sample_zero[1],
             )
-        )
-        writer.write(example.SerializeToString())
+            for _ in range(1, repetitions)
+        ]
+        samples.insert(0, sample_zero)
+
+        for sample in samples:
+            covariance_tf = tf.convert_to_tensor(sample[0])
+            q_true_tf = tf.convert_to_tensor(sample[1])
+
+            covariance_raw = tf.io.serialize_tensor(covariance_tf)
+            q_true_raw = tf.io.serialize_tensor(q_true_tf)
+
+            example = tf.train.Example(
+                features=tf.train.Features(
+                    feature={
+                        "covariance_raw": _bytes_feature(covariance_raw.numpy()),
+                        "q_true_raw": _bytes_feature(q_true_raw.numpy()),
+                    }
+                )
+            )
+            writer.write(example.SerializeToString())
     writer.close()
 
 
