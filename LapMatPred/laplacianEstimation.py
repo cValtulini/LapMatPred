@@ -6,6 +6,7 @@ from LapMatPred.myUtilities import extract_block, update_block_matrix
 import numpy as np
 import cvxpy as cp
 
+
 #########################################################################################
 # CLASSES
 #########################################################################################
