@@ -148,3 +148,18 @@ def _map_triu_function(q):
     q_triu_flat = tf.boolean_mask(q, mask)
 
     return tf.math.abs(q_triu_flat)
+
+
+def _reconstruct_triu_estimate_function(estimate, nodes_number):
+    full = tf.zeros(shape=(nodes_number, nodes_number), dtype=estimate.dtype)
+    upper_triangular = tf.linalg.band_part(
+        tf.ones_like(full), 0, -1
+    ) - tf.linalg.band_part(tf.ones_like(full), 0, 0)
+    indices = tf.where(tf.equal(upper_triangular, 1))
+
+    full = tf.tensor_scatter_nd_update(full, indices, -estimate)
+    full += tf.transpose(full)
+
+    full -= tf.linalg.diag(tf.reduce_sum(full, axis=-1))
+
+    return full
