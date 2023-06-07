@@ -173,3 +173,24 @@ def coordinate_descent(k, problem, stop_crit=5, max_iter=50, tol=1e-7):
         q = q_new
 
     return q, iterations, delta
+
+
+def initialize_nnqp_convex_problem(nodes_number):
+    """
+    Initializes a nnqp convex problem to estimate the GLP with Ortega's method, for graphs with nodes_number nodes.
+
+    Args:
+        nodes_number (int): The number of nodes in the graphs.
+
+    Returns:
+        ConvexProblem: An NNQP Convex problem to be solved with Ortega's method.
+    """
+    variable = cp.Variable((nodes_number - 1, 1))
+    param = [
+        cp.Parameter((nodes_number - 1, nodes_number - 1), PSD=True),
+        cp.Parameter((nodes_number - 1, 1)),
+    ]
+    constraints = [variable >= 0]
+    cost = cp.quad_form((variable + param[1]), param[0])
+
+    return ConvexProblem(variable, param, constraints, cost)
