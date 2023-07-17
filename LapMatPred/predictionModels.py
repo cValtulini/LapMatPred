@@ -164,7 +164,7 @@ class LaplacianPredictionModelFCParallel(LaplacianPredictionModel):
         self.output_layer = layers.Dense(nn * (nn - 1) // 2, activation=activation)
 
         self.drop = layers.Dropout(0.2)
-        self.reshape = layers.Reshape((nn, nn, 1), input_shape=(nn**2,))
+        self.reshape = layers.Reshape((nn**2, 1), input_shape=(nn**2,))
         self.concat = layers.Concatenate(axis=-1)
 
         del nn
