@@ -180,7 +180,7 @@ class LaplacianPredictionModelFCParallel(LaplacianPredictionModel):
                 for ffn_layer in ffn_stack[1:]:
                     x_array[w] = self.drop(ffn_layer(x_array[w]))
 
-                x_array[w] = self.reshape(x_array[w])
+        x_array = [self.reshape(x) for x in x_array]
         x = self.flatten(self.conv(self.concat(x_array)))
 
         return self.output_layer(x)
