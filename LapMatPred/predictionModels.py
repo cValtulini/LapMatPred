@@ -86,6 +86,118 @@ class LaplacianPredictionModelFC(LaplacianPredictionModel):
         return config
 
 
+class LaplacianPredictionModelFCSimple(LaplacianPredictionModel):
+    # TODO: Rewrite description
+    """
+    Model mainly implementing fully connected layers, after each FFN 1x1 convolution is
+    applied concatenating the current output with the previous' layer one to preserve
+    information about previous representations and to reduce backpropagation problems.
+    """
+
+    def __init__(self, nodes_number, depth=1, activation="relu", h_activation="relu"):
+        super().__init__(nodes_number)
+
+        nn = self.nodes_number
+
+        self.flatten = layers.Reshape((nn**2,), input_shape=(nn, nn))
+        self.normalize = layers.BatchNormalization(axis=-1)
+
+        self.ffn = [
+            layers.Dense(nn**2, activation=h_activation) for _ in range(depth)
+        ]
+        self.ffn_2 = layers.Dense(nn**2 // 2, activation=h_activation)
+
+        self.output_layer = layers.Dense(nn * (nn - 1) // 2, activation=activation)
+
+        self.drop = layers.Dropout(0.2)
+
+        del nn
+
+    def call(self, inputs):
+        # Flattens the input to be fed to the FFN
+        x = self.flatten(inputs)
+        x = self.normalize(x)
+
+        for ffn_layer in self.ffn:
+            x = self.drop(ffn_layer(x))
+        x = self.drop(self.ffn_2(x))
+
+        return self.output_layer(x)
+
+    def get_config(self):
+        config = super().get_config()
+        config.update({"flatten": self.flatten})
+        config.update({"normalize": self.normalize})
+        config.update({"ffn": self.ffn})
+        config.update({"ffn": self.ffn_2})
+        config.update({"output_layer": self.output_layer})
+        config.update({"drop": self.drop})
+        return config
+
+
+class LaplacianPredictionModelFCParallel(LaplacianPredictionModel):
+    # TODO: Rewrite description
+    """
+    Model mainly implementing fully connected layers, after each FFN 1x1 convolution is
+    applied concatenating the current output with the previous' layer one to preserve
+    information about previous representations and to reduce backpropagation problems.
+    """
+
+    def __init__(
+        self, nodes_number, depth=1, width=2, activation="relu", h_activation="relu"
+    ):
+        super().__init__(nodes_number)
+
+        nn = self.nodes_number
+
+        self.flatten = layers.Reshape((nn**2,), input_shape=(nn, nn))
+        self.normalize = layers.BatchNormalization(axis=-1)
+
+        self.ffn = [
+            [layers.Dense(nn**2, activation=h_activation) for _d in range(depth)]
+            for _w in range(width)
+        ]
+        self.conv = layers.Conv2D(
+            1, 1, activation=activation, input_shape=(nn, nn, width)
+        )
+
+        self.output_layer = layers.Dense(nn * (nn - 1) // 2, activation=activation)
+
+        self.drop = layers.Dropout(0.2)
+        self.reshape = layers.Reshape((nn, nn, 1), input_shape=(nn**2,))
+        self.concat = layers.Concatenate(axis=-1)
+
+        del nn
+
+    def call(self, inputs):
+        # Flattens the input to be fed to the FFN
+        x = self.flatten(inputs)
+        x = self.normalize(x)
+        x_array = [self.drop(ffn_stack[0](x)) for ffn_stack in self.ffn]
+
+        if len(self.ffn[0]) > 1:
+            for w, ffn_stack in enumerate(self.ffn):
+                for ffn_layer in ffn_stack[1:]:
+                    x_array[w] = self.drop(ffn_layer(x_array[w]))
+
+                x_array[w] = self.reshape(x_array(w))
+        x = self.flatten(self.conv(self.concat(x_array)))
+
+        return self.output_layer(x)
+
+    def get_config(self):
+        config = super().get_config()
+        config.update({"flatten": self.flatten})
+        config.update({"normalize": self.normalize})
+        config.update({"ffn": self.ffn})
+        config.update({"conv": self.conv})
+        config.update({"output_layer": self.output_layer})
+        config.update({"drop": self.drop})
+        config.update({"reshape": self.reshape})
+        config.update({"concat": self.concat})
+        return config
+
+
 ################################################################################
 # FUNCTIONS
 ################################################################################
