@@ -158,7 +158,7 @@ class LaplacianPredictionModelFCParallel(LaplacianPredictionModel):
             for _w in range(width)
         ]
         self.conv = layers.Conv2D(
-            1, 1, activation=activation, input_shape=(nn, nn, width)
+            1, 1, activation=activation, input_shape=(nn**2, width)
         )
 
         self.output_layer = layers.Dense(nn * (nn - 1) // 2, activation=activation)
